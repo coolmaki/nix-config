@@ -1,8 +1,10 @@
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, ... }:
+{
+  options.my.ai.enable = lib.mkEnableOption "AI tools";
 
-  options.my.ai.enable = lib.mkEnableOption "system AI configuration";
-
-  config = lib.mkIf config.my.ai.enable {
-    environment.systemPackages = [ pkgs.aichat ];
+  config = lib.mkIf (config.my.graphicalEnvironment.enable && config.my.ai.enable) {
+    environment.systemPackages = with pkgs; [
+      opencode
+    ];
   };
 }

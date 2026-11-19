@@ -1,4 +1,5 @@
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, ... }:
+{
   options.my.dev.enable = lib.mkEnableOption "development tools";
 
   config = lib.mkIf config.my.dev.enable {
@@ -11,6 +12,7 @@
       gcc
       nodejs
       gh
+    ] ++ lib.optionals config.my.graphicalEnvironment.enable [
       vscode
     ];
   };

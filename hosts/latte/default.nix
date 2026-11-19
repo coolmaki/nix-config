@@ -1,7 +1,7 @@
 { config, lib, ... }: {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/hardware/apple-macbookpro12-1.nix
+    ../../hardware/apple-macbookpro12-1.nix
   ];
 
   boot.loader.grub = {
@@ -29,11 +29,13 @@
 
   my = {
     user = "maki";
+    graphicalEnvironment = {
+      enable = true;
+      variant = "minimal";
+    };
     ai.enable = true;
     dev.enable = true;
     containers.enable = true;
-    desktop.enable = true;
-    desktop.variant = "minimal";
     learning.enable = true;
   };
 }

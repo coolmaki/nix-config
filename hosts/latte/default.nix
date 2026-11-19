@@ -34,5 +34,6 @@
     containers.enable = true;
     desktop.enable = true;
     desktop.variant = "minimal";
+    learning.enable = true;
   };
 }

@@ -6,7 +6,7 @@
   boot.blacklistedKernelModules = [ "b43" "bcma" "ssb" "brcmfmac" "brcmsmac" ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) [ "broadcom-sta" ];
+    builtins.elem (lib.getName pkg) [ "broadcom-sta" "vscode" ];
 
   nixpkgs.config.allowInsecurePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "broadcom-sta" ];

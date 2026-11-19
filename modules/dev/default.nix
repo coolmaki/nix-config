@@ -5,6 +5,7 @@
     environment.systemPackages = with pkgs; [
       git
       neovim
+      fastfetch
       ripgrep
       fd
       gcc

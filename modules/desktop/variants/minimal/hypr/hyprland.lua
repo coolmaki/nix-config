@@ -59,6 +59,7 @@ hl.on("hyprland.start", function ()
   hl.exec_cmd("quickshell")
   hl.exec_cmd("wl-paste --type text --watch cliphist store")   -- persist clipboard text
   hl.exec_cmd("wl-paste --type image --watch cliphist store")  -- persist clipboard image
+  hl.exec_cmd("brightnessctl -d '*kbd_backlight' set 200")     -- keyboard backlight
 end)
 
 -------------------------------
@@ -318,8 +319,10 @@ hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
 hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
 hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp",    hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  { locked = true, repeating = true })
+hl.bind("XF86KbdBrightnessUp",    hl.dsp.exec_cmd("brightnessctl -d '*kbd_backlight' set +10%"),     { locked = true, repeating = true })
+hl.bind("XF86KbdBrightnessDown",  hl.dsp.exec_cmd("brightnessctl -d '*kbd_backlight' set 10%-"),     { locked = true, repeating = true })
 
 -- Requires playerctl
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })

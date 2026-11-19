@@ -37,7 +37,7 @@ hl.monitor({
 -- Set programs that you use
 local terminal = "foot"
 local fileManager = "dolphin"
-local menu        = "hyprlauncher"
+local menu        = "quickshell -c ~/.config/quickshell/launcher"
 
 
 -------------------
@@ -283,7 +283,7 @@ local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close())
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("hyprctl dispatch exit"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 
@@ -367,6 +367,14 @@ hl.window_rule({
 --     no_anim = true,
 -- })
 -- overlayLayerRule:set_enabled(false)
+
+-- Quickshell launcher windowrule
+hl.window_rule({
+    name  = "quickshell-launcher",
+    match = { title = "Launcher" },
+
+    float  = true,
+})
 
 -- Hyprland-run windowrule
 hl.window_rule({

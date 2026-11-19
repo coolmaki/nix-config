@@ -9,6 +9,8 @@
       fd
       gcc
       nodejs
+      gh
+      vscode
     ];
   };
 }

@@ -33,10 +33,12 @@ in {
 
     environment.systemPackages = with pkgs; [
       quickshell
-      foot           # terminal
-      dolphin        # file manager
-      brightnessctl  # screen brightness keys
-      playerctl      # media keys
+      foot            # terminal
+      # dolphin       # file manager
+      wl-clipboard    # clipboard
+      cliphist        # clipboard
+      brightnessctl   # screen brightness keys
+      playerctl       # media keys
       opencode
     ];
 

@@ -8,8 +8,26 @@ Variants {
     required property var modelData
     screen: modelData
     anchors { top: true; left: true; right: true }
-    implicitHeight: 30
-    color: "#1a1b26"
+    margins { left: 16; right: 16 }
+    implicitHeight: 40
+    color: "transparent"
+
+    Rectangle {
+      anchors.fill: parent
+      bottomLeftRadius: 8
+      bottomRightRadius: 8
+      color: "#aa595959"
+
+      Rectangle {
+        anchors.fill: parent
+	anchors.leftMargin: 1
+	anchors.rightMargin: 1
+	anchors.bottomMargin: 1
+        bottomLeftRadius: 8
+        bottomRightRadius: 8
+        color: "#1a1b26"
+      }
+    }
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
 

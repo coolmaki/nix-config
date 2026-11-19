@@ -57,6 +57,8 @@ local menu        = "hyprlauncher"
 
 hl.on("hyprland.start", function ()
   hl.exec_cmd("quickshell")
+  hl.exec_cmd("wl-paste --type text --watch cliphist store")   -- persist clipboard text
+  hl.exec_cmd("wl-paste --type image --watch cliphist store")  -- persist clipboard image
 end)
 
 -------------------------------
@@ -95,8 +97,8 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- Refer to https://wiki.hypr.land/configuring/core/config-options/
 hl.config({
     general = {
-        gaps_in  = 5,
-        gaps_out = 20,
+        gaps_in  = 8,
+        gaps_out = 16,
 
         border_size = 1,
 
@@ -115,7 +117,7 @@ hl.config({
     },
 
     decoration = {
-        rounding       = 4,
+        rounding       = 16,
         rounding_power = 2,
 
         -- Change transparency of focused and unfocused windows
@@ -275,8 +277,8 @@ hl.device({
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 
 -- Example binds, see https://wiki.hypr.land/configuring/core/binds/ for more
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))
-local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close())
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
+local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("hyprctl dispatch exit"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))

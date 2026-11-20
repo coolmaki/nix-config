@@ -20,24 +20,31 @@ in {
     # ── Per-user: zsh with autocomplete, suggestions, and starship ──
     home-manager.users.${config.my.user} = { config, pkgs, ... }: {
       home.sessionVariables.SHELL = "${pkgs.zsh}/bin/zsh";
+      home.packages = [ pkgs.starship ];
 
       programs.zsh = {
         enable = true;
         autosuggestion.enable = true;
         autosuggestion.highlight = "fg=#585b70";
         syntaxHighlighting.enable = true;
-        initContent = "eval \"$(starship init zsh)\"";
+        initContent = ''
+          eval "$(starship init zsh)"
+          if [ -n "$GHOSTTY" ]; then
+            source "${pkgs.ghostty}/share/ghostty/shell-integration/zsh/ghostty-integration"
+          fi
+        '';
       };
 
-      home.packages = [ pkgs.starship ];
-
       xdg.configFile."starship.toml".source =
-        config.lib.file.mkOutOfStoreSymlink "${repo}/modules/terminal/starship.toml";
+        config.lib.file.mkOutOfStoreSymlink "${repo}/modules/terminal/config/starship.toml";
+      xdg.configFile."ghostty/config".source =
+        config.lib.file.mkOutOfStoreSymlink "${repo}/modules/terminal/config/ghostty";
     };
 
     # ── Terminal emulator (GUI only) ──
     environment.systemPackages = lib.optionals config.my.graphicalEnvironment.enable [
       pkgs.foot
+      pkgs.ghostty
       pkgs.yazi
     ];
   };

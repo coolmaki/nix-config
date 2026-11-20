@@ -5,8 +5,3 @@ window-padding-x = 8
 window-padding-y = 8
 theme = Catppuccin Mocha
 
-# Mac-style copy/paste with Super key
-keybind = super+c=copy_to_clipboard
-keybind = super+x=copy_to_clipboard
-keybind = super+v=paste_from_clipboard
-keybind = super+a=select_all

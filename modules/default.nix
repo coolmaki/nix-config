@@ -6,6 +6,7 @@ let
 in {
   imports = [
     ./whitelist
+    ./utils
     ./ai
     ./dev
     ./containers

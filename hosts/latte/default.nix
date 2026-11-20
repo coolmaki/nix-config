@@ -33,9 +33,11 @@
       enable = true;
       variant = "minimal";
     };
+    utils.enable = true;
     ai.enable = true;
     dev.enable = true;
     containers.enable = true;
+    terminal.enable = true;
     learning.enable = true;
   };
 }

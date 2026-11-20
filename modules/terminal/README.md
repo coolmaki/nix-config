@@ -1,7 +1,10 @@
 # Terminal
 
-Terminal emulator.
+Terminal configuration: zsh, starship prompt, autocomplete, and terminal emulator.
 
-**Requires:** `my.graphicalEnvironment.enable = true` (no separate enable option)
+**Option:** `my.terminal.enable`
 
-**Packages:** foot
+**Requires:** `my.graphicalEnvironment.enable` only for the terminal emulator (foot);
+shell, prompt, and plugins work without a GUI.
+
+**Packages:** zsh, starship, zsh-autosuggestions, zsh-syntax-highlighting, foot

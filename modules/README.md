@@ -8,5 +8,5 @@
 | containers | `modules/containers/` | No | Container runtime (podman) |
 | dev | `modules/dev/` | Partial | Development tools — CLI always, vscode gated on GUI |
 | learning | `modules/learning/` | Yes | Learning tools (obsidian, projectlibre) |
-| terminal | `modules/terminal/` | Yes | Terminal emulator (foot) |
+| terminal | `modules/terminal/` | Partial | Shell (zsh), prompt (starship), plugins, terminal emulator (foot) |
 | whitelist | `modules/whitelist/` | No | Unfree/insecure package license whitelisting |

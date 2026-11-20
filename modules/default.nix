@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.my.graphicalEnvironment;
-  repo = "/home/${config.my.user}/nixos-config";
+  repo = config.my.repo;
   variantDir = "${repo}/ui/${cfg.variant}";
 in {
   imports = [
@@ -14,6 +14,7 @@ in {
     ./terminal
     ./learning
     ./theme
+    ./keybind
   ];
 
   # ── Options ────────────────────────────────────────────────────────────
@@ -21,6 +22,12 @@ in {
   options.my.user = lib.mkOption {
     type = lib.types.str;
     description = "Primary user that Home Manager configures.";
+  };
+
+  options.my.repo = lib.mkOption {
+    type = lib.types.str;
+    default = "/home/${config.my.user}/nixos-config";
+    description = "Path to the nixos-config repository.";
   };
 
   options.my.graphicalEnvironment = {

@@ -1,0 +1,13 @@
+keymap:
+  - name: Custom shortcuts (GUI apps only)
+    remap:
+      Super-C: Ctrl-C
+      Super-V: Ctrl-V
+      Super-X: Ctrl-X
+      Super-S: Ctrl-S
+      Super-A: Ctrl-A
+      Super-F: Ctrl-F
+      Super-Z: Ctrl-Z
+      Super-Shift-Z: Ctrl-Shift-Z
+    application:
+      not: [foot, com.mitchellh.ghostty]

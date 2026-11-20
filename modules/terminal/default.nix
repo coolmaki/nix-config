@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.my.terminal;
-  repo = "/home/${config.my.user}/nixos-config";
+  repo = config.my.repo;
 in {
   options.my.terminal = {
     enable = lib.mkEnableOption "terminal configuration (zsh, starship, and terminal emulator)";

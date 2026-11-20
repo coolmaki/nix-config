@@ -390,3 +390,9 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+hl.window_rule({
+    name    = "terminal-opacity",
+    match   = { class = "^(foot|ghostty)$" },
+    opacity = "0.95 override 0.75 override",
+})

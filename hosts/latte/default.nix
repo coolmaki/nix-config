@@ -39,5 +39,6 @@
     containers.enable = true;
     terminal.enable = true;
     learning.enable = true;
+    theme.enable = true;
   };
 }

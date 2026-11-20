@@ -9,7 +9,7 @@ Variants {
     screen: modelData
     anchors { top: true; left: true; right: true }
     margins { left: 16; right: 16 }
-    implicitHeight: 40
+    implicitHeight: 24
     color: "transparent"
 
     Rectangle {

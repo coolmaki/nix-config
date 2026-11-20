@@ -37,6 +37,8 @@ in {
 
       xdg.configFile."starship.toml".source =
         config.lib.file.mkOutOfStoreSymlink "${repo}/modules/terminal/config/starship.toml";
+      xdg.configFile."foot/foot.ini".source =
+        config.lib.file.mkOutOfStoreSymlink "${repo}/modules/terminal/config/foot.ini";
       xdg.configFile."ghostty/config".source =
         config.lib.file.mkOutOfStoreSymlink "${repo}/modules/terminal/config/ghostty";
     };

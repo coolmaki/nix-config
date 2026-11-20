@@ -9,4 +9,5 @@
 | dev | `modules/dev/` | Partial | Development tools — CLI always, vscode gated on GUI |
 | learning | `modules/learning/` | Yes | Learning tools (obsidian, projectlibre) |
 | terminal | `modules/terminal/` | Partial | Shell (zsh), prompt (starship), plugins, terminal emulator (foot) |
+| theme | `modules/theme/` | Yes | System theming (GTK, icons) |
 | whitelist | `modules/whitelist/` | No | Unfree/insecure package license whitelisting |

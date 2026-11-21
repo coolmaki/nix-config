@@ -10,9 +10,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-    xremap-flake = {
-      url = "github:xremap/nix-flake";
-    };
   };
 
   outputs = inputs@{ nixpkgs, home-manager, ... }: {
@@ -20,7 +17,6 @@
       specialArgs = { inherit inputs; };
       modules = [
         home-manager.nixosModules.home-manager
-        inputs.xremap-flake.nixosModules.default
         ./modules
         ./hosts/latte
       ];

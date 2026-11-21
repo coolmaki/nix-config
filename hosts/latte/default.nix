@@ -40,6 +40,6 @@
     terminal.enable = true;
     learning.enable = true;
     theme.enable = true;
-    keybind.enable = false;
+    files.enable = true;
   };
 }

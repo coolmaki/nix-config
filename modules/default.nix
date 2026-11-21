@@ -12,9 +12,9 @@ in {
     ./containers
     ./browser
     ./terminal
+    ./files
     ./learning
     ./theme
-    ./keybind
   ];
 
   # ── Options ────────────────────────────────────────────────────────────
@@ -83,6 +83,12 @@ in {
       services.pipewire = {
         enable = true;
         pulse.enable = true;
+      };
+
+      security.pam.services.qslock = {
+        text = ''
+          auth required pam_unix.so
+        '';
       };
 
       home-manager.users.${config.my.user} = { config, ... }: {

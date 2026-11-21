@@ -8,4 +8,5 @@ Singleton {
     readonly property color selected: "#2a2b36"
     readonly property color fg: "#c0caf5"
     readonly property color muted: "#565f89"
+    readonly property color error: "#f7768e"
 }

@@ -284,12 +284,11 @@ local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("hyprctl dispatch exit"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("quickshell -c ~/.config/quickshell/lock"))
-hl.bind(mainMod .. " + ESCAPE", hl.dsp.exec_cmd("quickshell -c ~/.config/quickshell/power"))
+hl.bind(mainMod .. " + ESCAPE", hl.dsp.exec_cmd("qs ipc call power toggle"))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 
@@ -376,14 +375,6 @@ hl.window_rule({
 --     no_anim = true,
 -- })
 -- overlayLayerRule:set_enabled(false)
-
--- Quickshell power dialog windowrule
-hl.window_rule({
-    name  = "quickshell-power",
-    match = { title = "Power" },
-
-    float  = true,
-})
 
 -- Hyprland-run windowrule
 hl.window_rule({

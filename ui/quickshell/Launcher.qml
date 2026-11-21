@@ -16,6 +16,7 @@ Scope {
     }
 
     function show() {
+        window.screen = ScreenHelper.focusedScreen()
         searchInput.text = ""
         filterApps()
         searchInput.focus = true
@@ -63,9 +64,8 @@ Scope {
     }
 
     PanelWindow {
-        id: window
-        screen: Quickshell.screens[0]
-        anchors { top: true; left: true; right: true; bottom: true }
+            id: window
+            anchors { top: true; left: true; right: true; bottom: true }
         color: "transparent"
         visible: root.shown
         WlrLayershell.layer: WlrLayer.Overlay

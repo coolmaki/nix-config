@@ -10,7 +10,6 @@ All user-facing options live under `my.*`:
 |--------|--------|-------------|
 | `my.user` | root | Primary user for Home Manager |
 | `my.graphicalEnvironment.enable` | root | Master gate for all GUI-dependent config |
-| `my.graphicalEnvironment.variant` | root | Which `ui/` subdirectory to use |
 | `my.ai.enable` | ai | AI tools (requires graphical environment) |
 | `my.dev.enable` | dev | Development tools |
 | `my.containers.enable` | containers | Podman |
@@ -72,11 +71,6 @@ flake.nix
 4. Add to the `imports` list in `modules/default.nix`
 5. Set `my.<name>.enable = true` in the host config
 6. If the module pulls in unfree packages, add them to `modules/whitelist/default.nix`
-
-### Adding a new graphical variant
-
-1. Create `ui/<variant>/hypr/` and `ui/<variant>/quickshell/` directories
-2. Set `my.graphicalEnvironment.variant = "<variant>"` in the host config
 
 ## Module dependency graph
 

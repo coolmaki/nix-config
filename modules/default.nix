@@ -2,7 +2,7 @@
 let
   cfg = config.my.graphicalEnvironment;
   repo = config.my.repo;
-  variantDir = "${repo}/ui/${cfg.variant}";
+  uiDir = "${repo}/ui";
 in {
   imports = [
     ./whitelist
@@ -32,11 +32,6 @@ in {
 
   options.my.graphicalEnvironment = {
     enable = lib.mkEnableOption "graphical environment (Hyprland, Wayland, Quickshell, etc.)";
-    variant = lib.mkOption {
-      type = lib.types.str;
-      default = "minimal";
-      description = "Folder under ui/ with the Hyprland and Quickshell configs.";
-    };
   };
 
   # ── Config ─────────────────────────────────────────────────────────────
@@ -92,8 +87,8 @@ in {
       };
 
       home-manager.users.${config.my.user} = { config, ... }: {
-        xdg.configFile."hypr".source = config.lib.file.mkOutOfStoreSymlink "${variantDir}/hypr";
-        xdg.configFile."quickshell".source = config.lib.file.mkOutOfStoreSymlink "${variantDir}/quickshell";
+        xdg.configFile."hypr".source = config.lib.file.mkOutOfStoreSymlink "${uiDir}/hypr";
+        xdg.configFile."quickshell".source = config.lib.file.mkOutOfStoreSymlink "${uiDir}/quickshell";
       };
     })
   ];

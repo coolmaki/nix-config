@@ -31,7 +31,6 @@
     user = "maki";
     graphicalEnvironment = {
       enable = true;
-      variant = "minimal";
     };
     utils.enable = true;
     ai.enable = true;

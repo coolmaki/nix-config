@@ -13,7 +13,7 @@ sudo nixos-rebuild switch --flake .#latte
 ```
 nixos-config/
 ├── flake.nix                  # Entry point — nixosSystem for each host
-├── ui/                        # Hyprland + Quickshell config variants
+├── ui/                        # Hyprland + Quickshell config
 ├── hardware/                  # Per-machine hardware modules
 ├── hosts/                     # Host definitions (one directory per machine)
 │   └── latte/

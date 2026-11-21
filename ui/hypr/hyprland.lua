@@ -288,7 +288,6 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("hyprctl dispatch exit"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + SHIFT + SPACE", hl.dsp.exec_cmd("quickshell -c ~/.config/quickshell/launcher"))
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("quickshell -c ~/.config/quickshell/lock"))
 hl.bind(mainMod .. " + ESCAPE", hl.dsp.exec_cmd("quickshell -c ~/.config/quickshell/power"))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
@@ -377,14 +376,6 @@ hl.window_rule({
 --     no_anim = true,
 -- })
 -- overlayLayerRule:set_enabled(false)
-
--- Quickshell launcher windowrule
-hl.window_rule({
-    name  = "quickshell-launcher",
-    match = { title = "Launcher" },
-
-    float  = true,
-})
 
 -- Quickshell power dialog windowrule
 hl.window_rule({

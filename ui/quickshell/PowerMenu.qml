@@ -6,8 +6,12 @@ import QtQuick
 Scope {
     id: root
     property bool shown: false
-    property int selectedIndex: 0
-    property string mode: ""  // "" = menu, "reboot" = confirm, "shutdown" = confirm, "running" = executing
+
+    property var machine: ({
+        mode: "menu", index: 0, action: "", exitCode: 0, stderr: ""
+    })
+
+    PowerMachine { id: pm }
 
     IpcHandler {
         target: "power"
@@ -16,10 +20,26 @@ Scope {
         function close(): void { hide() }
     }
 
+    function apply(effects) {
+        root.machine = Object.assign({}, root.machine)
+        if (effects) {
+            for (var i = 0; i < effects.length; i++) {
+                var e = effects[i]
+                if (e.type === "exec") {
+                    powerProcess.command = e.command
+                    powerProcess.running = true
+                } else if (e.type === "hide") {
+                    hide()
+                }
+            }
+        }
+    }
+
     function show() {
         window.screen = ScreenHelper.focusedScreen()
-        selectedIndex = 0
-        mode = ""
+        effects.length = 0
+        pm.dispatch(machine, { type: "open" }, effects)
+        apply(effects)
         shown = true
     }
 
@@ -27,32 +47,7 @@ Scope {
         shown = false
     }
 
-    function selectAction() {
-        if (mode === "") {
-            if (selectedIndex === 0) mode = "reboot"
-            else if (selectedIndex === 1) mode = "shutdown"
-            selectedIndex = 0
-        } else if (mode !== "running") {
-            if (selectedIndex === 0) execute()
-            else back()
-        }
-    }
-
-    function execute() {
-        var cmd = mode === "reboot" ? ["systemctl", "reboot"] : ["systemctl", "poweroff"]
-        mode = "running"
-        powerProcess.command = cmd
-        powerProcess.running = true
-    }
-
-    function back() {
-        if (mode !== "" && mode !== "running") {
-            mode = ""
-            selectedIndex = 0
-        } else {
-            hide()
-        }
-    }
+    property var effects: []
 
     PanelWindow {
         id: window
@@ -76,80 +71,64 @@ Scope {
                 border { color: Theme.muted; width: 1 }
                 focus: true
 
-                Keys.onEscapePressed: root.back()
-                Keys.onUpPressed: { if (mode === "") root.selectedIndex = Math.max(0, root.selectedIndex - 1) }
-                Keys.onDownPressed: { if (mode === "") root.selectedIndex = Math.min(1, root.selectedIndex + 1) }
-                Keys.onLeftPressed: { if (mode !== "" && mode !== "running") root.selectedIndex = Math.max(0, root.selectedIndex - 1) }
-                Keys.onRightPressed: { if (mode !== "" && mode !== "running") root.selectedIndex = Math.min(1, root.selectedIndex + 1) }
-                Keys.onReturnPressed: root.selectAction()
+                Keys.onEscapePressed: { effects.length = 0; pm.dispatch(root.machine, { type: "back" }, effects); apply(effects) }
+                Keys.onUpPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:up" }, effects); apply(effects) }
+                Keys.onDownPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:down" }, effects); apply(effects) }
+                Keys.onLeftPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:left" }, effects); apply(effects) }
+                Keys.onRightPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:right" }, effects); apply(effects) }
+                Keys.onReturnPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "select" }, effects); apply(effects) }
 
                 Column {
                     id: column
                     anchors { top: parent.top; left: parent.left; right: parent.right; margins: 8 }
                     spacing: 4
 
-                    // ── Menu ─────────────────────────
+                    Repeater {
+                        model: [
+                            { label: "Reboot", action: "reboot" },
+                            { label: "Shut Down", action: "shutdown" }
+                        ]
 
-                    Item {
-                        width: parent.width
-                        height: (mode === "" && !powerProcess.running) ? 40 : 0
-                        visible: mode === "" && !powerProcess.running
+                        Item {
+                            width: column.width
+                            height: (root.machine.mode === "menu" && !powerProcess.running) ? 40 : 0
+                            visible: root.machine.mode === "menu" && !powerProcess.running
 
-                        Rectangle {
-                            anchors.fill: parent
-                            color: root.selectedIndex === 0 ? Theme.selected : "transparent"
-                            radius: 6
-                        }
+                            Rectangle {
+                                anchors.fill: parent
+                                color: root.machine.index === index ? Theme.selected : "transparent"
+                                radius: 6
+                            }
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Reboot"
-                            color: Theme.fg
-                            font.pixelSize: 15
-                        }
-                    }
-
-                    Item {
-                        width: parent.width
-                        height: (mode === "" && !powerProcess.running) ? 40 : 0
-                        visible: mode === "" && !powerProcess.running
-
-                        Rectangle {
-                            anchors.fill: parent
-                            color: root.selectedIndex === 1 ? Theme.selected : "transparent"
-                            radius: 6
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Shut Down"
-                            color: Theme.fg
-                            font.pixelSize: 15
+                            Text {
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: Theme.fg
+                                font.pixelSize: 15
+                            }
                         }
                     }
-
-                    // ── Confirmation ──────────────────
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: Theme.error
                         font.pixelSize: 14
-                        text: mode === "reboot" ? "Reboot?" : "Shut down?"
-                        visible: mode === "reboot" || mode === "shutdown"
-                        height: (mode === "reboot" || mode === "shutdown") ? 36 : 0
+                        text: root.machine.action === "reboot" ? "Reboot?" : "Shut down?"
+                        visible: root.machine.mode === "reboot" || root.machine.mode === "shutdown"
+                        height: (root.machine.mode === "reboot" || root.machine.mode === "shutdown") ? 36 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     Row {
                         width: parent.width
-                        height: (mode === "reboot" || mode === "shutdown") ? 40 : 0
-                        visible: mode === "reboot" || mode === "shutdown"
+                        height: (root.machine.mode === "reboot" || root.machine.mode === "shutdown") ? 40 : 0
+                        visible: root.machine.mode === "reboot" || root.machine.mode === "shutdown"
                         spacing: 4
 
                         Rectangle {
                             width: (parent.width - 4) / 2
                             height: 40
-                            color: root.selectedIndex === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
+                            color: root.machine.index === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
                             radius: 6
 
                             Text {
@@ -163,14 +142,14 @@ Scope {
                                 id: mouseYes
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: root.execute()
+                                onClicked: { effects.length = 0; pm.dispatch(root.machine, { type: "select" }, effects); apply(effects) }
                             }
                         }
 
                         Rectangle {
                             width: (parent.width - 4) / 2
                             height: 40
-                            color: root.selectedIndex === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
+                            color: root.machine.index === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
                             radius: 6
 
                             Text {
@@ -184,20 +163,38 @@ Scope {
                                 id: mouseNo
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: root.back()
+                                onClicked: { effects.length = 0; pm.dispatch(root.machine, { type: "back" }, effects); apply(effects) }
                             }
                         }
                     }
-
-                    // ── Running ────────────────────────
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: Theme.muted
                         font.pixelSize: 14
                         text: "Executing..."
-                        visible: mode === "running"
-                        height: mode === "running" ? 36 : 0
+                        visible: root.machine.mode === "running"
+                        height: root.machine.mode === "running" ? 36 : 0
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: Theme.error
+                        font.pixelSize: 14
+                        text: (root.machine.action || "") + " failed (exit " + (root.machine.exitCode || "?") + ")"
+                        visible: root.machine.mode === "error"
+                        height: root.machine.mode === "error" ? 30 : 0
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: Theme.muted
+                        font.pixelSize: 12
+                        text: root.machine.stderr || ""
+                        visible: root.machine.mode === "error" && (root.machine.stderr || "").length > 0
+                        height: root.machine.mode === "error" && (root.machine.stderr || "").length > 0 ? 20 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
@@ -206,7 +203,7 @@ Scope {
             MouseArea {
                 anchors.fill: parent
                 z: -1
-                onClicked: root.hide()
+                onClicked: { effects.length = 0; pm.dispatch(root.machine, { type: "dismiss" }, effects); apply(effects) }
             }
         }
     }
@@ -216,9 +213,16 @@ Scope {
         command: ["true"]
 
         onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0) {
-                root.mode = "error"
+            var event = { type: "process:exited", exitCode: exitCode, stderr: "" }
+            if (powerProcess.stderr) {
+                var collector = powerProcess.stderr
+                if (collector.text) event.stderr = collector.text.trim()
             }
+            effects.length = 0
+            pm.dispatch(root.machine, event, effects)
+            apply(effects)
         }
+
+        stderr: StdioCollector {}
     }
 }

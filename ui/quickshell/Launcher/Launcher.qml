@@ -100,7 +100,7 @@ Scope {
                 color: Theme.bg
                 radius: 8
                 border {
-                    color: Theme.muted
+                    color: Theme.secondary
                     width: 1
                 }
                 focus: true
@@ -111,13 +111,13 @@ Scope {
                     id: searchArea
                     anchors { top: parent.top; left: parent.left; right: parent.right; margins: 8 }
                     height: 40
-                    color: Theme.surface
+                    color: Theme.neutral
                     radius: 6
 
                     TextInput {
                         id: searchInput
                         anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                        color: Theme.fg
+                        color: Theme.primary
                         font.pixelSize: 16
                         verticalAlignment: TextInput.AlignVCenter
                         focus: true
@@ -178,7 +178,7 @@ Scope {
                                 verticalCenter: parent.verticalCenter
                             }
                             text: model.name
-                            color: Theme.fg
+                            color: Theme.primary
                             font.pixelSize: 14
                         }
 
@@ -189,7 +189,7 @@ Scope {
                                 verticalCenter: parent.verticalCenter
                             }
                             text: model.genericName || ""
-                            color: Theme.muted
+                            color: Theme.secondary
                             font.pixelSize: 12
                             elide: Text.ElideRight
                         }

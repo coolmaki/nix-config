@@ -145,7 +145,7 @@ Scope {
                         top: parent.top
                         topMargin: 80
                     }
-                    color: Theme.fg
+                    color: Theme.primary
                     font.pixelSize: 48
                     text: Qt.formatDateTime(clock.date, "HH:mm")
                 }
@@ -156,7 +156,7 @@ Scope {
                         top: clockText.bottom
                         topMargin: 4
                     }
-                    color: Theme.muted
+                    color: Theme.secondary
                     font.pixelSize: 18
                     text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
                 }
@@ -173,7 +173,7 @@ Scope {
                         topMargin: -30
                     }
                     color: fsm.state === fsm.backoff || fsm.state === fsm.unavailable
-                        ? Theme.error : Theme.fg
+                        ? Theme.error.content : Theme.primary
                     font.pixelSize: 24
                     text: "●".repeat(Array.from(fsm.password).length)
                 }
@@ -188,10 +188,10 @@ Scope {
                     width: 280
                     height: 2
                     color: {
-                        if (fsm.state === fsm.backoff) return Theme.error
-                        if (fsm.state === fsm.unavailable) return Theme.error
-                        if (fsm.state === fsm.checking) return Theme.warn
-                        return Theme.muted
+                        if (fsm.state === fsm.backoff) return Theme.error.content
+                        if (fsm.state === fsm.unavailable) return Theme.error.content
+                        if (fsm.state === fsm.checking) return Theme.warn.content
+                        return Theme.secondary
                     }
                 }
 
@@ -207,7 +207,7 @@ Scope {
                         topMargin: 10
                     }
                     color: fsm.state === fsm.backoff || fsm.state === fsm.unavailable
-                        ? Theme.error : Theme.muted
+                        ? Theme.error.content : Theme.secondary
                     font.pixelSize: 13
                     text: {
                         if (fsm.state === fsm.unavailable)

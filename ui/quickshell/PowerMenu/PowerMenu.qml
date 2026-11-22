@@ -80,7 +80,7 @@ Scope {
                 height: column.height + 16
                 color: Theme.bg
                 radius: 8
-                border { color: Theme.muted; width: 1 }
+                border { color: Theme.secondary; width: 1 }
                 focus: true
 
                 Keys.onEscapePressed: {
@@ -137,7 +137,7 @@ Scope {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.label
-                                color: Theme.fg
+                                color: Theme.primary
                                 font.pixelSize: 15
                             }
                         }
@@ -149,7 +149,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.error
+                        color: Theme.error.content
                         font.pixelSize: 14
                         text: fsm.action === "reboot" ? "Reboot?" : "Shut down?"
                         visible: fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown
@@ -166,13 +166,13 @@ Scope {
                         Rectangle {
                             width: (parent.width - 4) / 2
                             height: 40
-                            color: fsm.idx === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
+                            color: fsm.idx === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.neutral
                             radius: 6
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "Yes"
-                                color: Theme.error
+                                color: Theme.error.content
                                 font.pixelSize: 14
                             }
 
@@ -190,13 +190,13 @@ Scope {
                         Rectangle {
                             width: (parent.width - 4) / 2
                             height: 40
-                            color: fsm.idx === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
+                            color: fsm.idx === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.neutral
                             radius: 6
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "No"
-                                color: Theme.muted
+                                color: Theme.secondary
                                 font.pixelSize: 14
                             }
 
@@ -218,7 +218,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.muted
+                        color: Theme.secondary
                         font.pixelSize: 14
                         text: "Executing..."
                         visible: fsm.mode === fsm.running
@@ -232,7 +232,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.error
+                        color: Theme.error.content
                         font.pixelSize: 14
                         text: (fsm.action || "") + " failed (exit " + (fsm.exitCode || "?") + ")"
                         visible: fsm.mode === fsm.error
@@ -242,7 +242,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.muted
+                        color: Theme.secondary
                         font.pixelSize: 12
                         text: fsm.stderr || ""
                         visible: fsm.mode === fsm.error && (fsm.stderr || "").length > 0

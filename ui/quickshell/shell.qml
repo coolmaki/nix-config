@@ -4,4 +4,5 @@ Scope {
     Bar {}
     Launcher {}
     PowerMenu {}
+    LockScreen {}
 }

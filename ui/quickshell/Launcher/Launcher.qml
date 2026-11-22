@@ -99,10 +99,6 @@ Scope {
                 height: 420
                 color: Theme.bg
                 radius: 8
-                border {
-                    color: Theme.secondary
-                    width: 1
-                }
                 focus: true
 
                 Keys.onEscapePressed: root.hide()

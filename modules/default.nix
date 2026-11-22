@@ -62,6 +62,8 @@ in {
         wayland.enable = true;
       };
 
+      services.upower.enable = true;
+
       fonts.packages = with pkgs; [
         nerd-fonts.jetbrains-mono
         nerd-fonts.symbols-only

@@ -9,4 +9,5 @@ Scope {
     Launcher {}
     PowerMenu {}
     LockScreen {}
+    FocusIndicator {}
 }

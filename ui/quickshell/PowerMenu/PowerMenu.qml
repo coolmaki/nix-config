@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import ".."
 
 Scope {
     id: root
@@ -22,6 +23,15 @@ Scope {
     }
 
     // ------------------------------------------------------------
+    // Event object (reused)
+    // ------------------------------------------------------------
+
+    PowerMenuEvent {
+        id: pev
+        type: PowerMenuEvent.Type.Open
+    }
+
+    // ------------------------------------------------------------
     // IPC
     // ------------------------------------------------------------
 
@@ -36,13 +46,14 @@ Scope {
     // Show / hide
     // ------------------------------------------------------------
 
-    function show() {
+    function show(): void {
         window.screen = ScreenHelper.focusedScreen()
-        fsm.dispatch({ type: "open" })
+        PowerMenuEvent.Type.Open
+        fsm.dispatch(pev)
         shown = true
     }
 
-    function hide() {
+    function hide(): void {
         shown = false
     }
 
@@ -72,12 +83,30 @@ Scope {
                 border { color: Theme.muted; width: 1 }
                 focus: true
 
-                Keys.onEscapePressed: fsm.dispatch({ type: "back" })
-                Keys.onUpPressed: fsm.dispatch({ type: "nav:up" })
-                Keys.onDownPressed: fsm.dispatch({ type: "nav:down" })
-                Keys.onLeftPressed: fsm.dispatch({ type: "nav:left" })
-                Keys.onRightPressed: fsm.dispatch({ type: "nav:right" })
-                Keys.onReturnPressed: fsm.dispatch({ type: "select" })
+                Keys.onEscapePressed: {
+                    pev.type = PowerMenuEvent.Type.Back
+                    fsm.dispatch(pev)
+                }
+                Keys.onUpPressed: {
+                    pev.type = PowerMenuEvent.Type.NavUp
+                    fsm.dispatch(pev)
+                }
+                Keys.onDownPressed: {
+                    pev.type = PowerMenuEvent.Type.NavDown
+                    fsm.dispatch(pev)
+                }
+                Keys.onLeftPressed: {
+                    pev.type = PowerMenuEvent.Type.NavLeft
+                    fsm.dispatch(pev)
+                }
+                Keys.onRightPressed: {
+                    pev.type = PowerMenuEvent.Type.NavRight
+                    fsm.dispatch(pev)
+                }
+                Keys.onReturnPressed: {
+                    pev.type = PowerMenuEvent.Type.Select
+                    fsm.dispatch(pev)
+                }
 
                 Column {
                     id: column
@@ -96,8 +125,8 @@ Scope {
 
                         Item {
                             width: column.width
-                            height: (fsm.mode === "menu" && !powerProcess.running) ? 40 : 0
-                            visible: fsm.mode === "menu" && !powerProcess.running
+                            height: (fsm.mode === fsm.menu && !powerProcess.running) ? 40 : 0
+                            visible: fsm.mode === fsm.menu && !powerProcess.running
 
                             Rectangle {
                                 anchors.fill: parent
@@ -123,15 +152,15 @@ Scope {
                         color: Theme.error
                         font.pixelSize: 14
                         text: fsm.action === "reboot" ? "Reboot?" : "Shut down?"
-                        visible: fsm.mode === "reboot" || fsm.mode === "shutdown"
-                        height: (fsm.mode === "reboot" || fsm.mode === "shutdown") ? 36 : 0
+                        visible: fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown
+                        height: (fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown) ? 36 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     Row {
                         width: parent.width
-                        height: (fsm.mode === "reboot" || fsm.mode === "shutdown") ? 40 : 0
-                        visible: fsm.mode === "reboot" || fsm.mode === "shutdown"
+                        height: (fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown) ? 40 : 0
+                        visible: fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown
                         spacing: 4
 
                         Rectangle {
@@ -151,7 +180,10 @@ Scope {
                                 id: mouseYes
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: fsm.dispatch({ type: "select" })
+                                onClicked: {
+                                    pev.type = PowerMenuEvent.Type.Select
+                                    fsm.dispatch(pev)
+                                }
                             }
                         }
 
@@ -172,7 +204,10 @@ Scope {
                                 id: mouseNo
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: fsm.dispatch({ type: "back" })
+                                onClicked: {
+                                    pev.type = PowerMenuEvent.Type.Back
+                                    fsm.dispatch(pev)
+                                }
                             }
                         }
                     }
@@ -186,8 +221,8 @@ Scope {
                         color: Theme.muted
                         font.pixelSize: 14
                         text: "Executing..."
-                        visible: fsm.mode === "running"
-                        height: fsm.mode === "running" ? 36 : 0
+                        visible: fsm.mode === fsm.running
+                        height: fsm.mode === fsm.running ? 36 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
 
@@ -200,8 +235,8 @@ Scope {
                         color: Theme.error
                         font.pixelSize: 14
                         text: (fsm.action || "") + " failed (exit " + (fsm.exitCode || "?") + ")"
-                        visible: fsm.mode === "error"
-                        height: fsm.mode === "error" ? 30 : 0
+                        visible: fsm.mode === fsm.error
+                        height: fsm.mode === fsm.error ? 30 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
 
@@ -210,8 +245,8 @@ Scope {
                         color: Theme.muted
                         font.pixelSize: 12
                         text: fsm.stderr || ""
-                        visible: fsm.mode === "error" && (fsm.stderr || "").length > 0
-                        height: fsm.mode === "error" && (fsm.stderr || "").length > 0 ? 20 : 0
+                        visible: fsm.mode === fsm.error && (fsm.stderr || "").length > 0
+                        height: fsm.mode === fsm.error && (fsm.stderr || "").length > 0 ? 20 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
@@ -220,7 +255,10 @@ Scope {
             MouseArea {
                 anchors.fill: parent
                 z: -1
-                onClicked: fsm.dispatch({ type: "dismiss" })
+                onClicked: {
+                    pev.type = PowerMenuEvent.Type.Dismiss
+                    fsm.dispatch(pev)
+                }
             }
         }
     }
@@ -234,12 +272,14 @@ Scope {
         command: ["true"]
 
         onExited: (exitCode, exitStatus) => {
-            var event = { type: "process:exited", exitCode: exitCode, stderr: "" }
+            pev.type = PowerMenuEvent.Type.ProcessExited
+            pev.exitCode = exitCode
+            pev.stderr = ""
             if (powerProcess.stderr) {
                 var collector = powerProcess.stderr
-                if (collector.text) event.stderr = collector.text.trim()
+                if (collector.text) pev.stderr = collector.text.trim()
             }
-            fsm.dispatch(event)
+            fsm.dispatch(pev)
         }
 
         stderr: StdioCollector {}

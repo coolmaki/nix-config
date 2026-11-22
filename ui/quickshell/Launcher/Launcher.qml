@@ -2,11 +2,16 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import ".."
 
 Scope {
     id: root
     property bool shown: false
     property var allApps: []
+
+    // ------------------------------------------------------------
+    // IPC
+    // ------------------------------------------------------------
 
     IpcHandler {
         target: "launcher"
@@ -15,7 +20,11 @@ Scope {
         function close(): void { hide() }
     }
 
-    function show() {
+    // ------------------------------------------------------------
+    // Show / hide
+    // ------------------------------------------------------------
+
+    function show(): void {
         window.screen = ScreenHelper.focusedScreen()
         searchInput.text = ""
         filterApps()
@@ -23,28 +32,32 @@ Scope {
         shown = true
     }
 
-    function hide() {
+    function hide(): void {
         shown = false
     }
 
-    function loadApps() {
-        let entries = DesktopEntries.applications.values
+    // ------------------------------------------------------------
+    // App loading
+    // ------------------------------------------------------------
+
+    function loadApps(): void {
+        var entries = DesktopEntries.applications.values
         if (entries.length === 0) return
-        let apps = []
-        for (let i = 0; i < entries.length; i++) {
+        var apps = []
+        for (var i = 0; i < entries.length; i++) {
             apps.push(entries[i])
         }
         apps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
         allApps = apps
     }
 
-    function filterApps() {
+    function filterApps(): void {
         appListModel.clear()
-        let query = (searchInput.text || "").toLowerCase()
-        for (let i = 0; i < allApps.length; i++) {
-            let app = allApps[i]
-            let name = app.name.toLowerCase()
-            let generic = (app.genericName || "").toLowerCase()
+        var query = (searchInput.text || "").toLowerCase()
+        for (var i = 0; i < allApps.length; i++) {
+            var app = allApps[i]
+            var name = app.name.toLowerCase()
+            var generic = (app.genericName || "").toLowerCase()
             if (query === "" || name.includes(query) || generic.includes(query)) {
                 appListModel.append({
                     name: app.name,
@@ -63,9 +76,13 @@ Scope {
         function onApplicationsChanged() { loadApps() }
     }
 
+    // ------------------------------------------------------------
+    // Window
+    // ------------------------------------------------------------
+
     PanelWindow {
-            id: window
-            anchors { top: true; left: true; right: true; bottom: true }
+        id: window
+        anchors { top: true; left: true; right: true; bottom: true }
         color: "transparent"
         visible: root.shown
         WlrLayershell.layer: WlrLayer.Overlay

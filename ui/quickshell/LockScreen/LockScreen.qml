@@ -3,6 +3,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.Pam
 import QtQuick
+import ".."
 
 Scope {
 
@@ -15,11 +16,27 @@ Scope {
 
         onSubmitRequested: {
             var ok = pam.start()
-            if (!ok) fsm.dispatch({ type: "pam:unavailable" })
+            if (!ok) {
+                lev.type = LockScreenEvent.Type.PamUnavailable
+                fsm.dispatch(lev)
+            }
         }
 
         onUnlockRequested: lock.locked = false
     }
+
+    // ------------------------------------------------------------
+    // Event object (reused)
+    // ------------------------------------------------------------
+
+    LockScreenEvent {
+        id: lev
+        type: LockScreenEvent.Type.Open
+    }
+
+    // ------------------------------------------------------------
+    // Misc
+    // ------------------------------------------------------------
 
     property int dotCount: 0
 
@@ -33,8 +50,9 @@ Scope {
         function unlock(): void { lock.locked = false }
     }
 
-    function activate() {
-        fsm.dispatch({ type: "open" })
+    function activate(): void {
+        LockScreenEvent.Type.Open
+        fsm.dispatch(lev)
         lock.locked = true
     }
 
@@ -45,13 +63,16 @@ Scope {
     Timer {
         id: retryTimer
         interval: fsm.retryDelayMs
-        onTriggered: fsm.dispatch({ type: "retry:ready" })
+        onTriggered: {
+            lev.type = LockScreenEvent.Type.RetryReady
+            fsm.dispatch(lev)
+        }
     }
 
     Timer {
         id: dotTimer
         interval: 400
-        running: fsm.state === "checking"
+        running: fsm.state === fsm.checking
         repeat: true
         onTriggered: dotCount = (dotCount + 1) % 4
     }
@@ -73,12 +94,15 @@ Scope {
 
         onCompleted: (result) => {
             if (result === PamResult.Success) {
-                fsm.dispatch({ type: "pam:success" })
+                lev.type = LockScreenEvent.Type.PamSuccess
+                fsm.dispatch(lev)
             } else if (result === PamResult.Failed) {
-                fsm.dispatch({ type: "pam:failed" })
+                lev.type = LockScreenEvent.Type.PamFailed
+                fsm.dispatch(lev)
                 retryTimer.start()
             } else {
-                fsm.dispatch({ type: "pam:error" })
+                lev.type = LockScreenEvent.Type.PamError
+                fsm.dispatch(lev)
                 retryTimer.start()
             }
         }
@@ -96,7 +120,10 @@ Scope {
         id: lock
 
         onLockedChanged: {
-            if (!locked) fsm.dispatch({ type: "open" })
+            if (!locked) {
+                LockScreenEvent.Type.Open
+                fsm.dispatch(lev)
+            }
         }
 
         WlSessionLockSurface {
@@ -145,7 +172,7 @@ Scope {
                         top: parent.verticalCenter
                         topMargin: -30
                     }
-                    color: fsm.state === "backoff" || fsm.state === "unavailable"
+                    color: fsm.state === fsm.backoff || fsm.state === fsm.unavailable
                         ? Theme.error : Theme.fg
                     font.pixelSize: 24
                     text: "●".repeat(Array.from(fsm.password).length)
@@ -161,9 +188,9 @@ Scope {
                     width: 280
                     height: 2
                     color: {
-                        if (fsm.state === "backoff") return Theme.error
-                        if (fsm.state === "unavailable") return Theme.error
-                        if (fsm.state === "checking") return Theme.warn
+                        if (fsm.state === fsm.backoff) return Theme.error
+                        if (fsm.state === fsm.unavailable) return Theme.error
+                        if (fsm.state === fsm.checking) return Theme.warn
                         return Theme.muted
                     }
                 }
@@ -179,12 +206,13 @@ Scope {
                         top: inputLine.bottom
                         topMargin: 10
                     }
-                    color: fsm.state === "backoff" || fsm.state === "unavailable"
+                    color: fsm.state === fsm.backoff || fsm.state === fsm.unavailable
                         ? Theme.error : Theme.muted
                     font.pixelSize: 13
                     text: {
-                        if (fsm.state === "unavailable") return "Authentication unavailable"
-                        if (fsm.state === "backoff") {
+                        if (fsm.state === fsm.unavailable)
+                            return "Authentication unavailable"
+                        if (fsm.state === fsm.backoff) {
                             if (fsm.authError) return "Authentication error"
                             var msg = "Wrong password (" + fsm.attempts + " attempt"
                                 + (fsm.attempts > 1 ? "s" : "") + ")"
@@ -192,7 +220,7 @@ Scope {
                                 msg += " — wait " + (fsm.retryDelayMs / 1000) + "s"
                             return msg
                         }
-                        if (fsm.state === "checking")
+                        if (fsm.state === fsm.checking)
                             return "Checking" + ".".repeat(dotCount)
                         return ""
                     }
@@ -207,20 +235,25 @@ Scope {
                         return
 
                     if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        fsm.dispatch({ type: "submit" })
+                        lev.type = LockScreenEvent.Type.Submit
+                        fsm.dispatch(lev)
                         return
                     }
 
                     if (event.key === Qt.Key_Backspace) {
-                        fsm.dispatch({ type: "backspace" })
+                        lev.type = LockScreenEvent.Type.Backspace
+                        fsm.dispatch(lev)
                         return
                     }
 
                     if (/[\u0000-\u001f\u007f]/.test(event.text))
                         return
 
-                    if (event.text.length > 0)
-                        fsm.dispatch({ type: "input", text: event.text })
+                    if (event.text.length > 0) {
+                        lev.type = LockScreenEvent.Type.Input
+                        lev.text = event.text
+                        fsm.dispatch(lev)
+                    }
                 }
             }
         }

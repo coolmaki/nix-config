@@ -1,12 +1,16 @@
 import QtQml
 
 QtObject {
+    readonly property int ready: 0
+    readonly property int checking: 1
+    readonly property int backoff: 2
+    readonly property int unavailable: 3
 
     // ------------------------------------------------------------
     // Properties
     // ------------------------------------------------------------
 
-    property string state: "ready"
+    property int state: ready
     property string password: ""
     property string pendingPassword: ""
     property int attempts: 0
@@ -21,19 +25,20 @@ QtObject {
     // Signals
     // ------------------------------------------------------------
 
-    signal submitRequested
-    signal unlockRequested
+    signal submitRequested()
+    signal unlockRequested()
 
     // ------------------------------------------------------------
     // Input helpers
     // ------------------------------------------------------------
 
-    function appendChar(text) {
-        if (state !== "ready" && state !== "backoff" && state !== "checking" && state !== "unavailable") return
+    function appendChar(text: string): void {
+        if (state !== ready && state !== backoff
+            && state !== checking && state !== unavailable) return
         password += text
     }
 
-    function backspace() {
+    function backspace(): void {
         if (password.length > 0)
             password = Array.from(password).slice(0, -1).join("")
     }
@@ -42,71 +47,55 @@ QtObject {
     // Dispatch
     // ------------------------------------------------------------
 
-    function dispatch(event) {
+    function dispatch(event: var): void {
         switch (event.type) {
 
-        // ------------------------------------------------------------
-        // User input
-        // ------------------------------------------------------------
-
-        case "input":
+        case LockScreenEvent.Type.Input:
             appendChar(event.text)
             break
 
-        case "backspace":
+        case LockScreenEvent.Type.Backspace:
             backspace()
             break
 
-        case "submit":
-            if (state !== "ready" && state !== "unavailable") return
+        case LockScreenEvent.Type.Submit:
+            if (state !== ready && state !== unavailable) return
             if (password.length === 0) return
             pendingPassword = password
             password = ""
-            state = "checking"
+            state = checking
             submitRequested()
             break
 
-        // ------------------------------------------------------------
-        // PAM results
-        // ------------------------------------------------------------
-
-        case "pam:success":
+        case LockScreenEvent.Type.PamSuccess:
             unlockRequested()
             break
 
-        case "pam:failed":
+        case LockScreenEvent.Type.PamFailed:
             pendingPassword = ""
             authError = false
             attempts++
-            state = "backoff"
+            state = backoff
             break
 
-        case "pam:error":
+        case LockScreenEvent.Type.PamError:
             pendingPassword = ""
             authError = true
-            state = "backoff"
+            state = backoff
             break
 
-        case "pam:unavailable":
+        case LockScreenEvent.Type.PamUnavailable:
             pendingPassword = ""
-            state = "unavailable"
+            state = unavailable
             break
 
-        // ------------------------------------------------------------
-        // Timer expiry
-        // ------------------------------------------------------------
-
-        case "retry:ready":
-            if (state === "backoff")
-                state = "ready"
+        case LockScreenEvent.Type.RetryReady:
+            if (state === backoff)
+                state = ready
             break
 
-        // ------------------------------------------------------------
-        // Lifecycle
-        // ------------------------------------------------------------
-
-        case "open":
-            state = "ready"
+        case LockScreenEvent.Type.Open:
+            state = ready
             password = ""
             pendingPassword = ""
             attempts = 0

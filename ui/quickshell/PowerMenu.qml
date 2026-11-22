@@ -7,11 +7,23 @@ Scope {
     id: root
     property bool shown: false
 
-    property var machine: ({
-        mode: "menu", index: 0, action: "", exitCode: 0, stderr: ""
-    })
+    // ------------------------------------------------------------
+    // State machine
+    // ------------------------------------------------------------
 
-    PowerMachine { id: pm }
+    PowerMenuStateMachine {
+        id: fsm
+
+        onExecRequested: (command) => {
+            powerProcess.command = command
+            powerProcess.running = true
+        }
+        onHideRequested: hide()
+    }
+
+    // ------------------------------------------------------------
+    // IPC
+    // ------------------------------------------------------------
 
     IpcHandler {
         target: "power"
@@ -20,26 +32,13 @@ Scope {
         function close(): void { hide() }
     }
 
-    function apply(effects) {
-        root.machine = Object.assign({}, root.machine)
-        if (effects) {
-            for (var i = 0; i < effects.length; i++) {
-                var e = effects[i]
-                if (e.type === "exec") {
-                    powerProcess.command = e.command
-                    powerProcess.running = true
-                } else if (e.type === "hide") {
-                    hide()
-                }
-            }
-        }
-    }
+    // ------------------------------------------------------------
+    // Show / hide
+    // ------------------------------------------------------------
 
     function show() {
         window.screen = ScreenHelper.focusedScreen()
-        effects.length = 0
-        pm.dispatch(machine, { type: "open" }, effects)
-        apply(effects)
+        fsm.dispatch({ type: "open" })
         shown = true
     }
 
@@ -47,7 +46,9 @@ Scope {
         shown = false
     }
 
-    property var effects: []
+    // ------------------------------------------------------------
+    // Window
+    // ------------------------------------------------------------
 
     PanelWindow {
         id: window
@@ -71,17 +72,21 @@ Scope {
                 border { color: Theme.muted; width: 1 }
                 focus: true
 
-                Keys.onEscapePressed: { effects.length = 0; pm.dispatch(root.machine, { type: "back" }, effects); apply(effects) }
-                Keys.onUpPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:up" }, effects); apply(effects) }
-                Keys.onDownPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:down" }, effects); apply(effects) }
-                Keys.onLeftPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:left" }, effects); apply(effects) }
-                Keys.onRightPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "nav:right" }, effects); apply(effects) }
-                Keys.onReturnPressed: { effects.length = 0; pm.dispatch(root.machine, { type: "select" }, effects); apply(effects) }
+                Keys.onEscapePressed: fsm.dispatch({ type: "back" })
+                Keys.onUpPressed: fsm.dispatch({ type: "nav:up" })
+                Keys.onDownPressed: fsm.dispatch({ type: "nav:down" })
+                Keys.onLeftPressed: fsm.dispatch({ type: "nav:left" })
+                Keys.onRightPressed: fsm.dispatch({ type: "nav:right" })
+                Keys.onReturnPressed: fsm.dispatch({ type: "select" })
 
                 Column {
                     id: column
                     anchors { top: parent.top; left: parent.left; right: parent.right; margins: 8 }
                     spacing: 4
+
+                    // ------------------------------------------------------------
+                    // Menu items
+                    // ------------------------------------------------------------
 
                     Repeater {
                         model: [
@@ -91,12 +96,12 @@ Scope {
 
                         Item {
                             width: column.width
-                            height: (root.machine.mode === "menu" && !powerProcess.running) ? 40 : 0
-                            visible: root.machine.mode === "menu" && !powerProcess.running
+                            height: (fsm.mode === "menu" && !powerProcess.running) ? 40 : 0
+                            visible: fsm.mode === "menu" && !powerProcess.running
 
                             Rectangle {
                                 anchors.fill: parent
-                                color: root.machine.index === index ? Theme.selected : "transparent"
+                                color: fsm.idx === index ? Theme.selected : "transparent"
                                 radius: 6
                             }
 
@@ -109,26 +114,30 @@ Scope {
                         }
                     }
 
+                    // ------------------------------------------------------------
+                    // Confirmation
+                    // ------------------------------------------------------------
+
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: Theme.error
                         font.pixelSize: 14
-                        text: root.machine.action === "reboot" ? "Reboot?" : "Shut down?"
-                        visible: root.machine.mode === "reboot" || root.machine.mode === "shutdown"
-                        height: (root.machine.mode === "reboot" || root.machine.mode === "shutdown") ? 36 : 0
+                        text: fsm.action === "reboot" ? "Reboot?" : "Shut down?"
+                        visible: fsm.mode === "reboot" || fsm.mode === "shutdown"
+                        height: (fsm.mode === "reboot" || fsm.mode === "shutdown") ? 36 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     Row {
                         width: parent.width
-                        height: (root.machine.mode === "reboot" || root.machine.mode === "shutdown") ? 40 : 0
-                        visible: root.machine.mode === "reboot" || root.machine.mode === "shutdown"
+                        height: (fsm.mode === "reboot" || fsm.mode === "shutdown") ? 40 : 0
+                        visible: fsm.mode === "reboot" || fsm.mode === "shutdown"
                         spacing: 4
 
                         Rectangle {
                             width: (parent.width - 4) / 2
                             height: 40
-                            color: root.machine.index === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
+                            color: fsm.idx === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
                             radius: 6
 
                             Text {
@@ -142,14 +151,14 @@ Scope {
                                 id: mouseYes
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: { effects.length = 0; pm.dispatch(root.machine, { type: "select" }, effects); apply(effects) }
+                                onClicked: fsm.dispatch({ type: "select" })
                             }
                         }
 
                         Rectangle {
                             width: (parent.width - 4) / 2
                             height: 40
-                            color: root.machine.index === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
+                            color: fsm.idx === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.surface
                             radius: 6
 
                             Text {
@@ -163,28 +172,36 @@ Scope {
                                 id: mouseNo
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: { effects.length = 0; pm.dispatch(root.machine, { type: "back" }, effects); apply(effects) }
+                                onClicked: fsm.dispatch({ type: "back" })
                             }
                         }
                     }
+
+                    // ------------------------------------------------------------
+                    // Running
+                    // ------------------------------------------------------------
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: Theme.muted
                         font.pixelSize: 14
                         text: "Executing..."
-                        visible: root.machine.mode === "running"
-                        height: root.machine.mode === "running" ? 36 : 0
+                        visible: fsm.mode === "running"
+                        height: fsm.mode === "running" ? 36 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
+
+                    // ------------------------------------------------------------
+                    // Error
+                    // ------------------------------------------------------------
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: Theme.error
                         font.pixelSize: 14
-                        text: (root.machine.action || "") + " failed (exit " + (root.machine.exitCode || "?") + ")"
-                        visible: root.machine.mode === "error"
-                        height: root.machine.mode === "error" ? 30 : 0
+                        text: (fsm.action || "") + " failed (exit " + (fsm.exitCode || "?") + ")"
+                        visible: fsm.mode === "error"
+                        height: fsm.mode === "error" ? 30 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
 
@@ -192,9 +209,9 @@ Scope {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: Theme.muted
                         font.pixelSize: 12
-                        text: root.machine.stderr || ""
-                        visible: root.machine.mode === "error" && (root.machine.stderr || "").length > 0
-                        height: root.machine.mode === "error" && (root.machine.stderr || "").length > 0 ? 20 : 0
+                        text: fsm.stderr || ""
+                        visible: fsm.mode === "error" && (fsm.stderr || "").length > 0
+                        height: fsm.mode === "error" && (fsm.stderr || "").length > 0 ? 20 : 0
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
@@ -203,10 +220,14 @@ Scope {
             MouseArea {
                 anchors.fill: parent
                 z: -1
-                onClicked: { effects.length = 0; pm.dispatch(root.machine, { type: "dismiss" }, effects); apply(effects) }
+                onClicked: fsm.dispatch({ type: "dismiss" })
             }
         }
     }
+
+    // ------------------------------------------------------------
+    // Process execution
+    // ------------------------------------------------------------
 
     Process {
         id: powerProcess
@@ -218,9 +239,7 @@ Scope {
                 var collector = powerProcess.stderr
                 if (collector.text) event.stderr = collector.text.trim()
             }
-            effects.length = 0
-            pm.dispatch(root.machine, event, effects)
-            apply(effects)
+            fsm.dispatch(event)
         }
 
         stderr: StdioCollector {}

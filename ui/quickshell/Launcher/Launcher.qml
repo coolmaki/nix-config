@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Controls
 import ".."
 
 Scope {
@@ -88,35 +89,57 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: root.shown ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+        readonly property int searchAreaHeight: 40
+        readonly property int itemHeight: 32
+        readonly property int itemSpacing: 0
+        readonly property int maxVisibleItems: 10
+        readonly property int launcherRadius: searchAreaHeight / 2
+
         Rectangle {
             anchors.fill: parent
             color: "transparent"
 
             Rectangle {
                 id: card
-                anchors.centerIn: parent
+                anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 32 }
                 width: 600
-                height: 420
+                height: window.searchAreaHeight + (window.itemHeight + window.itemSpacing) * Math.min(window.maxVisibleItems, appListModel.count)
                 color: Theme.bg
-                radius: 8
+                radius: window.launcherRadius
                 focus: true
+                clip: true
 
                 Keys.onEscapePressed: root.hide()
 
-                Rectangle {
+                Row {
                     id: searchArea
-                    anchors { top: parent.top; left: parent.left; right: parent.right; margins: 8 }
-                    height: 40
-                    color: Theme.neutral
-                    radius: 6
+                    anchors {
+                        top: parent.top
+                        left: parent.left
+                        leftMargin: 16
+                        right: parent.right
+                        rightMargin: 16
+                    }
+                    height: window.searchAreaHeight
+                    spacing: 8
 
-                    TextInput {
+                    Text {
+                        anchors { verticalCenter: parent.verticalCenter }
+                        text: "\uea6d"
+                        color: Theme.disabled
+                        font.pixelSize: 16
+                    }
+
+                    TextField {
                         id: searchInput
-                        anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                        anchors { verticalCenter: parent.verticalCenter }
+                        background: Theme.primary
                         color: Theme.primary
                         font.pixelSize: 16
                         verticalAlignment: TextInput.AlignVCenter
                         focus: true
+                        placeholderText: "Search"
+                        placeholderTextColor: Theme.disabled
 
                         onTextChanged: root.filterApps()
 
@@ -146,12 +169,11 @@ Scope {
                     id: resultsList
                     anchors {
                         top: searchArea.bottom
-                        topMargin: 8
                         left: parent.left
                         right: parent.right
                         bottom: parent.bottom
-                        margins: 8
                     }
+                    spacing: window.itemSpacing
                     clip: true
                     model: ListModel { id: appListModel }
 
@@ -159,18 +181,17 @@ Scope {
 
                     delegate: Item {
                         width: ListView.view.width
-                        height: 40
+                        height: window.itemHeight
 
                         Rectangle {
                             anchors.fill: parent
                             color: index === resultsList.selectedIndex ? Theme.selected : "transparent"
-                            radius: 6
                         }
 
                         Text {
                             anchors {
                                 left: parent.left
-                                leftMargin: 12
+                                leftMargin: 16
                                 verticalCenter: parent.verticalCenter
                             }
                             text: model.name
@@ -181,7 +202,7 @@ Scope {
                         Text {
                             anchors {
                                 right: parent.right
-                                rightMargin: 12
+                                rightMargin: 16
                                 verticalCenter: parent.verticalCenter
                             }
                             text: model.genericName || ""

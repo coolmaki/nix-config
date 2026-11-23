@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ inputs, config, lib, pkgs, ... }:
 let
   cfg = config.my.graphicalEnvironment;
   repo = config.my.repo;
@@ -76,7 +76,7 @@ in {
         brightnessctl
         playerctl
         capitaine-cursors
-        hyprpaper
+        inputs.awww.packages.${stdenv.hostPlatform.system}.awww
       ];
 
       environment.variables = {

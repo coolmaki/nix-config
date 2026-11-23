@@ -10,6 +10,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+    awww = {
+      url = "git+https://codeberg.org/LGFae/awww";
+    };
   };
 
   outputs = inputs@{ nixpkgs, home-manager, ... }: {

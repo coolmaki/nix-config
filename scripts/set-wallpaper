@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Set wallpaper to wp<n>.jpg
+# Set wallpaper to wp<n>.jpg with fade transition
 # Usage: set-wallpaper <n>
 set -euo pipefail
 
@@ -12,12 +12,4 @@ if [ ! -f "$IMAGE" ]; then
     exit 1
 fi
 
-MONITOR=$(hyprctl monitors | grep -oP 'Monitor \K\S+' | head -1)
-if [ -z "$MONITOR" ]; then
-    echo "No monitor found" >&2
-    exit 1
-fi
-
-# Preload and set
-hyprctl hyprpaper preload "$IMAGE"
-hyprctl hyprpaper wallpaper "${MONITOR},${IMAGE}"
+awww img "$IMAGE" --transition-type fade --transition-duration 0.5

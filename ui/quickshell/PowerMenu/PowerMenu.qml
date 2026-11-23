@@ -251,6 +251,8 @@ Scope {
                 }
             }
 
+            Shadow { element: card }
+
             MouseArea {
                 anchors.fill: parent
                 z: -1

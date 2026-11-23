@@ -62,6 +62,8 @@ hl.on("hyprland.start", function ()
   -- Requires `kbd-backlight` script from the hardware module.
   hl.exec_cmd("kbd-backlight set 200")
   hl.exec_cmd("hyprctl setcursor capitaine-cursors 24")
+  hl.exec_cmd("hyprpaper")
+  hl.exec_cmd("sleep 1 && set-wallpaper 1")
 end)
 
 -------------------------------
@@ -312,6 +314,11 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:mag
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+
+-- Wallpaper switching with mainMod + ALT + [1-9]
+for i = 1, 9 do
+    hl.bind(mainMod .. " + ALT + " .. i, hl.dsp.exec_cmd("set-wallpaper " .. i))
+end
 
 -- Move/resize windows with mainMod + LMB/RMB and dragging
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })

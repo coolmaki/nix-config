@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Set wallpaper to wp<n>.jpg
+# Usage: set-wallpaper <n>
+set -euo pipefail
+
+WALLDIR="/home/maki/nixos-config/wallpapers"
+N="${1:-1}"
+IMAGE="${WALLDIR}/wp${N}.jpg"
+
+if [ ! -f "$IMAGE" ]; then
+    echo "Wallpaper not found: $IMAGE" >&2
+    exit 1
+fi
+
+MONITOR=$(hyprctl monitors | grep -oP 'Monitor \K\S+' | head -1)
+if [ -z "$MONITOR" ]; then
+    echo "No monitor found" >&2
+    exit 1
+fi
+
+# Preload and set
+hyprctl hyprpaper preload "$IMAGE"
+hyprctl hyprpaper wallpaper "${MONITOR},${IMAGE}"

@@ -76,11 +76,13 @@ in {
         brightnessctl
         playerctl
         capitaine-cursors
+        hyprpaper
       ];
 
       environment.variables = {
         XCURSOR_THEME = "capitaine-cursors";
         XCURSOR_SIZE = "24";
+        PATH = [ "$PATH" "/home/maki/nixos-config/scripts" ];
       };
 
       services.pipewire = {

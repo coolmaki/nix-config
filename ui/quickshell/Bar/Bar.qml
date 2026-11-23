@@ -121,6 +121,8 @@ PanelWindow {
         }
     }
 
+    Shadow { element: content }
+
     SystemClock { id: clock; precision: SystemClock.Minutes }
 
     // ------------------------------------------------------------

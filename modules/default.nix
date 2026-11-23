@@ -75,7 +75,13 @@ in {
         cliphist
         brightnessctl
         playerctl
+        capitaine-cursors
       ];
+
+      environment.variables = {
+        XCURSOR_THEME = "capitaine-cursors";
+        XCURSOR_SIZE = "24";
+      };
 
       services.pipewire = {
         enable = true;

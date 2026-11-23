@@ -61,6 +61,7 @@ hl.on("hyprland.start", function ()
   hl.exec_cmd("wl-paste --type image --watch cliphist store")  -- persist clipboard image
   -- Requires `kbd-backlight` script from the hardware module.
   hl.exec_cmd("kbd-backlight set 200")
+  hl.exec_cmd("hyprctl setcursor capitaine-cursors 24")
 end)
 
 -------------------------------

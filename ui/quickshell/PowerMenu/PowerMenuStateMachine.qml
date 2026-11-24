@@ -1,19 +1,21 @@
 import QtQml
 
 QtObject {
-    readonly property int menu: 0
-    readonly property int reboot: 1
-    readonly property int shutdown: 2
-    readonly property int running: 3
-    readonly property int error: 4
+    enum State {
+        Menu,
+        Reboot,
+        Shutdown,
+        Running,
+        Error
+    }
 
     // ------------------------------------------------------------
     // Properties
     // ------------------------------------------------------------
 
-    property int mode: menu
-    property int idx: 0
-    property string action: ""
+    property int mode: PowerMenuStateMachine.Menu
+    property int selected: PowerMenuTile.Shutdown
+    property bool isLeftSelected: true
     property int exitCode: 0
     property string stderr: ""
 
@@ -28,74 +30,99 @@ QtObject {
     // Dispatch
     // ------------------------------------------------------------
 
-    function dispatch(event: var): void {
-        switch (event.type) {
+    function dispatch(e: PowerMenuEvent): void {
+        switch (e.type) {
 
-        case PowerMenuEvent.Type.NavUp:
-            if (mode !== menu) return
-            idx = Math.max(0, idx - 1)
-            break
-
-        case PowerMenuEvent.Type.NavDown:
-            if (mode !== menu) return
-            idx = Math.min(1, idx + 1)
-            break
-
-        case PowerMenuEvent.Type.NavLeft:
-            if (mode !== reboot && mode !== shutdown) return
-            idx = Math.max(0, idx - 1)
-            break
-
-        case PowerMenuEvent.Type.NavRight:
-            if (mode !== reboot && mode !== shutdown) return
-            idx = Math.min(1, idx + 1)
-            break
-
-        case PowerMenuEvent.Type.Select:
-            if (mode === menu) {
-                action = idx === 0 ? "reboot" : "shutdown"
-                mode = idx === 0 ? reboot : shutdown
-                idx = 0
-            } else if (mode === reboot || mode === shutdown) {
-                if (idx === 0) {
-                    exitCode = 0
-                    stderr = ""
-                    mode = running
-                    execRequested(action === "reboot" ? ["systemctl", "reboot"] : ["systemctl", "poweroff"])
-                } else {
-                    mode = menu
-                    action = ""
-                    idx = 0
-                }
+        case PowerMenuEvent.NavLeft:
+            if (mode === PowerMenuStateMachine.Menu) {
+                selected = PowerMenuTile.Shutdown
+                break
             }
-            break
 
-        case PowerMenuEvent.Type.Back:
-            if (mode === reboot || mode === shutdown) {
-                mode = menu
-                action = ""
-                idx = 0
-            } else {
-                hideRequested()
+            if (mode === PowerMenuStateMachine.Reboot) {
+                selected = PowerMenuTile.Back
+                break
             }
+            
+            if (mode === PowerMenuStateMachine.Shutdown) {
+                selected = PowerMenuTile.Shutdown
+                break
+            }
+
             break
 
-        case PowerMenuEvent.Type.Dismiss:
+        case PowerMenuEvent.NavRight:
+            if (mode === PowerMenuStateMachine.Menu) {
+                selected = PowerMenuTile.Reboot
+                break
+            }
+
+            if (mode === PowerMenuStateMachine.Reboot) {
+                selected = PowerMenuTile.Reboot
+                break
+            }
+
+            if (mode === PowerMenuStateMachine.Shutdown) {
+                selected = PowerMenuTile.Back
+                break
+            }
+
+            break
+
+        case PowerMenuEvent.Select:
+            if (mode === PowerMenuStateMachine.Menu && selected === PowerMenuTile.Reboot) {
+                mode = PowerMenuStateMachine.Reboot
+                break
+            }
+
+            if (mode === PowerMenuStateMachine.Menu && selected === PowerMenuTile.Shutdown) {
+                mode = PowerMenuStateMachine.Shutdown
+                break
+            }
+
+            if (mode === PowerMenuStateMachine.Reboot && selected === PowerMenuTile.Back) {
+                mode = PowerMenuStateMachine.Menu
+                selected = PowerMenuTile.Shutdown
+                break
+            }
+
+            if (mode === PowerMenuStateMachine.Shutdown && selected === PowerMenuTile.Back) {
+                mode = PowerMenuStateMachine.Menu
+                selected = PowerMenuTile.Reboot
+                break
+            }
+
+            if (mode === PowerMenuStateMachine.Reboot && selected === PowerMenuTile.Reboot) {
+                exitCode = 0
+                stderr = ""
+                execRequested(["systemctl", "reboot"])
+                break
+            }
+
+            if (mode === State.Shutdown && selected === PowerMenuTile.Shutdown) {
+                exitCode = 0
+                stderr = ""
+                execRequested(["systemctl", "poweroff"])
+                break
+            }
+
+            break
+
+        case PowerMenuEvent.Dismiss:
             hideRequested()
             break
 
-        case PowerMenuEvent.Type.Open:
-            mode = menu
-            idx = 0
-            action = ""
+        case PowerMenuEvent.Open:
+            mode = PowerMenuStateMachine.Menu
+            selected = PowerMenuTile.Shutdown
             exitCode = 0
             stderr = ""
             break
 
-        case PowerMenuEvent.Type.ProcessExited:
-            if (mode !== running) return
+        case PowerMenuEvent.ProcessExited:
+            if (mode !== State.Running) return
             if (event.exitCode === 0) return
-            mode = error
+            mode = PowerMenuStateMachine.Error
             exitCode = event.exitCode
             stderr = event.stderr
             break

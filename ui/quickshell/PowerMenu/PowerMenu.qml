@@ -22,13 +22,19 @@ Scope {
         onHideRequested: hide()
     }
 
+    readonly property bool isLeftSelected: (fsm.mode === PowerMenuStateMachine.Menu && fsm.selected === PowerMenuTile.Shutdown) ||
+        (fsm.mode === PowerMenuTile.Reboot && fsm.selected === PowerMenuTile.Back) ||
+        (fsm.mode === PowerMenuTile.Shutdown && fsm.selected === PowerMenuTile.Shutdown)
+
+    readonly property int selectionMargin: isLeftSelected ? 8 : 8 + 64
+
     // ------------------------------------------------------------
     // Event object (reused)
     // ------------------------------------------------------------
 
     PowerMenuEvent {
         id: pev
-        type: PowerMenuEvent.Type.Open
+        type: PowerMenuEvent.Open
     }
 
     // ------------------------------------------------------------
@@ -48,7 +54,7 @@ Scope {
 
     function show(): void {
         window.screen = ScreenHelper.focusedScreen()
-        PowerMenuEvent.Type.Open
+        pev.type = PowerMenuEvent.Open
         fsm.dispatch(pev)
         shown = true
     }
@@ -75,192 +81,53 @@ Scope {
 
             Rectangle {
                 id: card
-                anchors.centerIn: parent
-                width: 240
-                height: column.height + 16
+                anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 32 }
+                width: 128 + 16
+                height: 80
                 color: Theme.bg
-                radius: 8
+                radius: 40
                 focus: true
 
+                Rectangle {
+                    implicitWidth: 64
+                    implicitHeight: 64
+                    radius: 32
+                    color: Theme.selected
+                    anchors { verticalCenter: parent.verticalCenter; left: parent.left; leftMargin: root.selectionMargin }
+
+                    Behavior on anchors.leftMargin {
+                        NumberAnimation { duration: 200; easing.type: Easing.InOutCubic }
+                    }
+                }
+
+                Row {
+                    anchors { verticalCenter: parent.verticalCenter; right: parent.right; rightMargin: 8 }
+
+                    PowerMenuTile { type: fsm.mode === PowerMenuStateMachine.Reboot ? PowerMenuTile.Back : PowerMenuTile.Shutdown; state: fsm }
+                    PowerMenuTile { type: fsm.mode === PowerMenuStateMachine.Shutdown ? PowerMenuTile.Back : PowerMenuTile.Reboot; state: fsm }
+                }
+
                 Keys.onEscapePressed: {
-                    pev.type = PowerMenuEvent.Type.Back
-                    fsm.dispatch(pev)
-                }
-                Keys.onUpPressed: {
-                    pev.type = PowerMenuEvent.Type.NavUp
-                    fsm.dispatch(pev)
-                }
-                Keys.onDownPressed: {
-                    pev.type = PowerMenuEvent.Type.NavDown
+                    pev.type = PowerMenuEvent.Dismiss
                     fsm.dispatch(pev)
                 }
                 Keys.onLeftPressed: {
-                    pev.type = PowerMenuEvent.Type.NavLeft
+                    pev.type = PowerMenuEvent.NavLeft
                     fsm.dispatch(pev)
                 }
                 Keys.onRightPressed: {
-                    pev.type = PowerMenuEvent.Type.NavRight
+                    pev.type = PowerMenuEvent.NavRight
                     fsm.dispatch(pev)
                 }
                 Keys.onReturnPressed: {
-                    pev.type = PowerMenuEvent.Type.Select
+                    pev.type = PowerMenuEvent.Select
                     fsm.dispatch(pev)
-                }
-
-                Column {
-                    id: column
-                    anchors { top: parent.top; left: parent.left; right: parent.right; margins: 8 }
-                    spacing: 4
-
-                    // ------------------------------------------------------------
-                    // Menu items
-                    // ------------------------------------------------------------
-
-                    Repeater {
-                        model: [
-                            { label: "Reboot", action: "reboot" },
-                            { label: "Shut Down", action: "shutdown" }
-                        ]
-
-                        Item {
-                            width: column.width
-                            height: (fsm.mode === fsm.menu && !powerProcess.running) ? 40 : 0
-                            visible: fsm.mode === fsm.menu && !powerProcess.running
-
-                            Rectangle {
-                                anchors.fill: parent
-                                color: fsm.idx === index ? Theme.selected : "transparent"
-                                radius: 6
-                            }
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: modelData.label
-                                color: Theme.primary
-                                font.pixelSize: 15
-                            }
-                        }
-                    }
-
-                    // ------------------------------------------------------------
-                    // Confirmation
-                    // ------------------------------------------------------------
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.error.content
-                        font.pixelSize: 14
-                        text: fsm.action === "reboot" ? "Reboot?" : "Shut down?"
-                        visible: fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown
-                        height: (fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown) ? 36 : 0
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    Row {
-                        width: parent.width
-                        height: (fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown) ? 40 : 0
-                        visible: fsm.mode === fsm.reboot || fsm.mode === fsm.shutdown
-                        spacing: 4
-
-                        Rectangle {
-                            width: (parent.width - 4) / 2
-                            height: 40
-                            color: fsm.idx === 0 ? (mouseYes.containsMouse ? "#3a2b36" : Theme.selected) : Theme.neutral
-                            radius: 6
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "Yes"
-                                color: Theme.error.content
-                                font.pixelSize: 14
-                            }
-
-                            MouseArea {
-                                id: mouseYes
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onClicked: {
-                                    pev.type = PowerMenuEvent.Type.Select
-                                    fsm.dispatch(pev)
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            width: (parent.width - 4) / 2
-                            height: 40
-                            color: fsm.idx === 1 ? (mouseNo.containsMouse ? "#3a2b36" : Theme.selected) : Theme.neutral
-                            radius: 6
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "No"
-                                color: Theme.secondary
-                                font.pixelSize: 14
-                            }
-
-                            MouseArea {
-                                id: mouseNo
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onClicked: {
-                                    pev.type = PowerMenuEvent.Type.Back
-                                    fsm.dispatch(pev)
-                                }
-                            }
-                        }
-                    }
-
-                    // ------------------------------------------------------------
-                    // Running
-                    // ------------------------------------------------------------
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.secondary
-                        font.pixelSize: 14
-                        text: "Executing..."
-                        visible: fsm.mode === fsm.running
-                        height: fsm.mode === fsm.running ? 36 : 0
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    // ------------------------------------------------------------
-                    // Error
-                    // ------------------------------------------------------------
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.error.content
-                        font.pixelSize: 14
-                        text: (fsm.action || "") + " failed (exit " + (fsm.exitCode || "?") + ")"
-                        visible: fsm.mode === fsm.error
-                        height: fsm.mode === fsm.error ? 30 : 0
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.secondary
-                        font.pixelSize: 12
-                        text: fsm.stderr || ""
-                        visible: fsm.mode === fsm.error && (fsm.stderr || "").length > 0
-                        height: fsm.mode === fsm.error && (fsm.stderr || "").length > 0 ? 20 : 0
-                        verticalAlignment: Text.AlignVCenter
-                    }
+                    console.log("mode: " + fsm.mode)
+                    console.log("selected: " + fsm.selected)
                 }
             }
 
             Shadow { element: card }
-
-            MouseArea {
-                anchors.fill: parent
-                z: -1
-                onClicked: {
-                    pev.type = PowerMenuEvent.Type.Dismiss
-                    fsm.dispatch(pev)
-                }
-            }
         }
     }
 
@@ -273,7 +140,7 @@ Scope {
         command: ["true"]
 
         onExited: (exitCode, exitStatus) => {
-            pev.type = PowerMenuEvent.Type.ProcessExited
+            pev.type = PowerMenuEvent.ProcessExited
             pev.exitCode = exitCode
             pev.stderr = ""
             if (powerProcess.stderr) {
